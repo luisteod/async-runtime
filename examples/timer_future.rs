@@ -69,7 +69,7 @@ fn main() {
     });
 
     rt.spawn(async {
-        println!("howdy 2!");
+        println!("howdy! 2");
         TimerFuture::new(Duration::new(2, 0)).await;
         println!("done! 2");
     });
