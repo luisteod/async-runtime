@@ -1,16 +1,13 @@
-// Hash Three
-// Deve conter um hashing de quando uma fonte de io é criada. Serve pra armazenar uma estrutura tipo ScheduledIo
-// que conterá uma lista de wakers
-
-// Trava no poll e dispacha os eventos de acordo com o token recebido do evento. Procura no hashing a fonte em
-// específico e chama o wake() para ela.
-// pub fn turn
-
 use super::scheduled_io::ScheduledIo;
 use mio::{Events, Interest, Poll, Registry, Token, event::Source};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
+
+/// Driver that drives IO events. 
+/// It's backed by OS selector primitives, such as epoll(7) provided by [`mio`].
+/// The driver holds an event loop which watches for IO events and dispatches 
+/// calling `wake` for each interested contained in the HashMap.
 
 const MAX_EVENTS_CAPACITY: usize = 1024;
 const DEFAULT_IO_INTERESTS: Interest = Interest::READABLE.add(Interest::WRITABLE);
