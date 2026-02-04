@@ -11,7 +11,6 @@ use crate::runtime::{
 
 /// Task executor that receives tasks off of a channel and runs them.
 pub struct ExecutorDriver {
-    pending_tasks: i32,
     io_driver: IoDriver,
     ready_queue: Receiver<Arc<Task>>,
 }
@@ -24,20 +23,21 @@ impl ExecutorDriver {
     pub fn new(ready_queue: Receiver<Arc<Task>>) -> (ExecutorDriver, ExecutorHandle) {
         let (io_driver, io_handle) = IoDriver::new();
 
-        let driver = ExecutorDriver {
-            pending_tasks: 0,
+        let exec_driver = ExecutorDriver {
             io_driver: io_driver,
             ready_queue,
         };
 
-        let handle = ExecutorHandle {
+        let exec_handle = ExecutorHandle {
             io_handle: io_handle,
         };
 
-        (driver, handle)
+        (exec_driver, exec_handle)
     }
 
-    pub fn start(&mut self) {
+    pub fn start(&self) {
+        let mut pending_tasks = 0;
+
         while let Ok(task) = self.ready_queue.recv() {
             // Take the future, and if it has not yet completed (is still Some),
             // poll it in an attempt to complete it.
@@ -49,14 +49,14 @@ impl ExecutorDriver {
                 match future.as_mut().poll(context) {
                     Poll::Pending => {
                         *future_slot = Some(future);
-                        self.pending_tasks += 1;
+                        pending_tasks += 1;
                     }
                     Poll::Ready(_) => {
-                        self.pending_tasks -= 1;
+                        pending_tasks -= 1;
                     }
                 }
 
-                if self.pending_tasks == 0 {
+                if pending_tasks == 0 {
                     break;
                 }
             }
