@@ -1,4 +1,4 @@
-use crate::runtime::io::Registration;
+use crate::runtime::{context, io::Registration};
 use mio::event::Source;
 
 pub struct PollEvented<E: Source> {
@@ -7,8 +7,8 @@ pub struct PollEvented<E: Source> {
 }
 
 impl<E: Source> PollEvented<E> {
-    pub fn new(source: E) -> Self {
-        let registration = Registration::register(&source);
+    pub fn new(mut source: E) -> Self {
+        let registration = Registration::register(&mut source, context::get_executor_handle());
         PollEvented {
             io: source,
             registration: registration,
