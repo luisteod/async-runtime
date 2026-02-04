@@ -21,7 +21,7 @@ impl Runtime {
         }
     }
 
-    pub fn start(&mut self) {
+    pub fn start(&self) {
         // Sends the driver handle to the global context
         context::enter_runtime(&self.executor_handle);
         self.executor_driver.start();
