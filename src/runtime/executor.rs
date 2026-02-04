@@ -19,6 +19,12 @@ pub struct ExecutorHandle {
     io_handle: IoHandle,
 }
 
+impl ExecutorHandle {
+    pub fn io(&self) -> &IoHandle {
+        &self.io_handle
+    }
+}
+
 impl ExecutorDriver {
     pub fn new(ready_queue: Receiver<Arc<Task>>) -> (ExecutorDriver, ExecutorHandle) {
         let (io_driver, io_handle) = IoDriver::new();
