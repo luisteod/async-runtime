@@ -12,4 +12,4 @@ pub use builder::build;
 
 pub mod io;
 
-mod context;
+pub mod context;

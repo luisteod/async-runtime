@@ -26,7 +26,7 @@ impl Context {
         }
     }
 
-    fn get_executor(&self) -> Option<Rc<ExecutorHandle>> {
+    fn get_executor_handle(&self) -> Option<Rc<ExecutorHandle>> {
         let executor = self.executor.get().cloned();
 
         executor
@@ -39,9 +39,9 @@ pub fn enter_runtime(executor: &Rc<ExecutorHandle>) {
     })
 }
 
-pub fn get_executor() -> Rc<ExecutorHandle> {
+pub fn get_executor_handle() -> Rc<ExecutorHandle> {
     CURRENT_CONTEXT.with(|ctx| {
-        ctx.get_executor()
+        ctx.get_executor_handle()
             .expect("Context error: get_executor called outside of a runtime context")
     })
 }
