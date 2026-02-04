@@ -1,7 +1,4 @@
-use futures::{
-    future::BoxFuture,
-    task::ArcWake,
-};
+use futures::{future::BoxFuture, task::ArcWake};
 use std::{
     sync::mpsc::SyncSender,
     sync::{Arc, Mutex},
