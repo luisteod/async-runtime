@@ -1,7 +1,5 @@
 // Respresenta uma fonte de io que foi adicionada ao driver de io
-use std::collections::HashMap;
 use std::pin::Pin;
-use std::rc::Rc;
 use std::task::{Context, Poll, Waker};
 
 use mio::Token;
