@@ -3,10 +3,11 @@ use mio::{Events, Interest, Poll, Registry, Token, event::Source};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
+use std::time::Duration;
 
-/// Driver that drives IO events. 
+/// Driver that drives IO events.
 /// It's backed by OS selector primitives, such as epoll(7) provided by [`mio`].
-/// The driver holds an event loop which watches for IO events and dispatches 
+/// The driver holds an event loop which watches for IO events and dispatches
 /// calling `wake` for each interested contained in the HashMap.
 
 const MAX_EVENTS_CAPACITY: usize = 1024;
@@ -37,10 +38,10 @@ impl IoDriver {
         (driver, handle)
     }
 
-    pub fn park(&mut self, handle: &IoHandle) {
+    pub fn park(&mut self, handle: &IoHandle, timeout: Duration) {
         let mut events = Events::with_capacity(MAX_EVENTS_CAPACITY);
         self.poll
-            .poll(&mut events, None)
+            .poll(&mut events, Some(timeout))
             .expect("Error polling IO events");
 
         for event in &events {
