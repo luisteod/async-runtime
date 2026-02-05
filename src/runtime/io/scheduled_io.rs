@@ -5,8 +5,8 @@ use mio::Token;
 
 /// Represents an IO source that was added into the [`crate::runtime::io::IoDriver`].
 /// This entry is placed into a HashMap inside the driver using it's generated token.
-/// When the driver identify an IO event, it calls [`ScheduledIo::wake`] of the 
-/// appropriate entry. 
+/// When the driver identify an IO event, it calls [`ScheduledIo::wake`] of the
+/// appropriate entry.
 
 pub struct ScheduledIo {
     waker: Option<Waker>,
