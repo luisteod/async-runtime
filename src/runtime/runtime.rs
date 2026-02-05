@@ -21,10 +21,10 @@ impl Runtime {
         }
     }
 
-    pub fn start(&self) {
+    pub fn start(self) {
         // Sends the driver handle to the global context
         context::enter_runtime(&self.executor_handle);
-        self.executor_driver.start();
+        self.executor_driver.start(&self.executor_handle);
     }
     pub fn spawn(&self, future: impl Future<Output = ()> + 'static + Send) {
         self.spawner.spawn(future);
