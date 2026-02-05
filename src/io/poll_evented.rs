@@ -1,5 +1,6 @@
 use crate::runtime::{context, io::Registration};
 use mio::event::Source;
+use std::ops::Deref;
 
 pub struct PollEvented<E: Source> {
     io: E,
@@ -13,5 +14,17 @@ impl<E: Source> PollEvented<E> {
             io: source,
             registration: registration,
         }
+    }
+
+    pub fn registration(&self) -> &Registration {
+        return &self.registration
+    }
+}
+
+impl<E: Source> Deref for PollEvented<E> {
+    type Target = E;
+
+    fn deref(&self) -> &E {
+        &self.io
     }
 }
