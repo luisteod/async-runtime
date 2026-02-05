@@ -52,10 +52,20 @@ impl ExecutorDriver {
         (exec_driver, exec_handle)
     }
 
+    fn exits(self) {
+        // Placeholder for cleaning resources...
+    }
+
     pub fn start(mut self, handle: &ExecutorHandle) {
         loop {
             // Try receive tasks from the channel
-            self.process_tasks();
+            let end_signal = self.process_tasks();
+
+            // Exits the runtime
+            if end_signal {
+                self.exits();
+                break;
+            }
 
             let poll_timeout = if self.metadata.pending_tasks > 0 {
                 Duration::ZERO
@@ -68,7 +78,11 @@ impl ExecutorDriver {
         }
     }
 
-    fn process_tasks(&mut self) {
+    /// Process all tasks in the channel.
+    /// Returns :
+    ///     true - If all tasks have been processed
+    ///     false - Has pending tasks
+    fn process_tasks(&mut self) -> bool {
         while let Ok(task) = self.ready_queue.try_recv() {
             // Take the future, and if it has not yet completed (is still Some),
             // poll it in an attempt to complete it.
@@ -88,9 +102,11 @@ impl ExecutorDriver {
                 }
 
                 if self.metadata.pending_tasks == 0 {
-                    break;
+                    return true;
                 }
             }
         }
+
+        return false;
     }
 }
