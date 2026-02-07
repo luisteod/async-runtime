@@ -1,9 +1,10 @@
 use std::pin::Pin;
+use std::rc::Rc;
 use std::task::{Context, Poll, Waker};
 
 use mio::event::Event;
 use mio::{Interest, Token};
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 
 /// Represents an IO source that was added into the [`crate::runtime::io::IoDriver`].
 /// This entry is placed into a HashMap inside the driver using it's generated token.
@@ -11,16 +12,21 @@ use std::cell::RefCell;
 /// appropriate entry.
 
 pub struct ScheduledIo {
-    waker: Option<Waker>,
-    interest: Option<Interest>,
+    waker: RefCell<Option<Waker>>,
+    interest: Cell<Option<Interest>>,
     last_event: RefCell<Option<Event>>,
+}
+
+pub struct IoEventFuture {
+    // We hold a clone of the Rc so the state stays alive while we await
+    io: Rc<ScheduledIo>,
 }
 
 impl ScheduledIo {
     pub fn default() -> Self {
         ScheduledIo {
-            waker: None,
-            interest: None,
+            waker: RefCell::new(None),
+            interest: Cell::new(None),
             last_event: RefCell::new(None),
         }
     }
@@ -28,6 +34,7 @@ impl ScheduledIo {
     // Handle for waking this future
     pub fn wake(&self) {
         self.waker
+            .borrow()
             .as_ref()
             .expect("Waker not provided")
             .wake_by_ref();
@@ -37,9 +44,10 @@ impl ScheduledIo {
         self.last_event.replace(Some(event));
     }
 
-    pub fn io_future(mut self, interest: Interest) -> Self {
-        self.interest = Some(interest);
-        self
+    pub fn io_future(self: &Rc<Self>, interest: Interest) -> IoEventFuture {
+        self.interest.set(Some(interest));
+
+        IoEventFuture { io: self.clone() }
     }
 
     pub fn token(&self) -> Token {
@@ -48,22 +56,21 @@ impl ScheduledIo {
     }
 }
 
-impl Future for ScheduledIo {
+impl Future for IoEventFuture {
     type Output = Event;
 
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        let io = self.get_mut();
+        // We reach into the shared state to check for readiness
+        let mut event_slot = self.io.last_event.borrow_mut();
 
-        // Handles cleaning of the created RefMut guard
-        {
-            let mut event_slot = io.last_event.borrow_mut();
-
-            if let Some(event) = event_slot.take() {
-                return Poll::Ready(event);
-            }
+        if let Some(event) = event_slot.take() {
+            return Poll::Ready(event);
         }
 
-        io.waker = Some(cx.waker().clone());
+        // If not ready, we register the waker in the shared state
+        // You'll need to make 'waker' a RefCell inside ScheduledIo too!
+        *self.io.waker.borrow_mut() = Some(cx.waker().clone());
+
         Poll::Pending
     }
 }
