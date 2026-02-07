@@ -1,7 +1,9 @@
 use std::pin::Pin;
 use std::task::{Context, Poll, Waker};
 
-use mio::Token;
+use mio::event::Event;
+use mio::{Interest, Token};
+use std::cell::RefCell;
 
 /// Represents an IO source that was added into the [`crate::runtime::io::IoDriver`].
 /// This entry is placed into a HashMap inside the driver using it's generated token.
@@ -10,14 +12,16 @@ use mio::Token;
 
 pub struct ScheduledIo {
     waker: Option<Waker>,
-    is_ready: bool,
+    interest: Option<Interest>,
+    last_event: RefCell<Option<Event>>,
 }
 
 impl ScheduledIo {
     pub fn default() -> Self {
         ScheduledIo {
             waker: None,
-            is_ready: false,
+            interest: None,
+            last_event: RefCell::new(None),
         }
     }
 
@@ -29,6 +33,15 @@ impl ScheduledIo {
             .wake_by_ref();
     }
 
+    pub fn set_event(&self, event: Event) {
+        self.last_event.replace(Some(event));
+    }
+
+    pub fn io_future(mut self, interest: Interest) -> Self {
+        self.interest = Some(interest);
+        self
+    }
+
     pub fn token(&self) -> Token {
         let ptr = self as *const ScheduledIo;
         Token(ptr.addr())
@@ -36,13 +49,20 @@ impl ScheduledIo {
 }
 
 impl Future for ScheduledIo {
-    type Output = ();
+    type Output = Event;
 
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        let io = unsafe { self.get_unchecked_mut() };
-        if io.is_ready {
-            return Poll::Ready(());
+        let io = self.get_mut();
+
+        // Handles cleaning of the created RefMut guard
+        {
+            let mut event_slot = io.last_event.borrow_mut();
+
+            if let Some(event) = event_slot.take() {
+                return Poll::Ready(event);
+            }
         }
+
         io.waker = Some(cx.waker().clone());
         Poll::Pending
     }
