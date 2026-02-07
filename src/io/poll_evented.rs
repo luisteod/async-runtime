@@ -17,7 +17,7 @@ impl<E: Source> PollEvented<E> {
     }
 
     pub fn registration(&self) -> &Registration {
-        return &self.registration
+        return &self.registration;
     }
 }
 

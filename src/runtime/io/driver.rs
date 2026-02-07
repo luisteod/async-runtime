@@ -47,10 +47,15 @@ impl IoDriver {
         for event in &events {
             let token = event.token();
 
-            let map_guard = handle.scheduled_io_map.borrow();
-            let io = map_guard.get(&token);
+            let io_ref = {
+                let map = handle.scheduled_io_map.borrow();
+                map.get(&token).cloned()
+            };
 
-            io.expect("No IO founded").wake();
+            if let Some(io) = io_ref {
+                io.set_event(event.clone());
+                io.wake();
+            }
         }
     }
 }
