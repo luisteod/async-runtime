@@ -52,7 +52,7 @@ impl ExecutorDriver {
         (exec_driver, exec_handle)
     }
 
-    pub fn start(mut self, handle: &ExecutorHandle) {
+    pub fn park(mut self, handle: &ExecutorHandle) {
         loop {
             // Try receive tasks from the channel
             let end_signal = self.process_tasks();
@@ -70,12 +70,8 @@ impl ExecutorDriver {
             };
 
             // Park in IO driver waiting for IO events for a timeout
-            self.io_driver.park(&handle.io_handle, poll_timeout);
+            self.io_driver.park_timeout(&handle.io_handle, poll_timeout);
         }
-    }
-
-    fn exit(self) {
-        // Placeholder for cleaning resources...
     }
 
     /// Process all tasks in the channel.
@@ -118,5 +114,9 @@ impl ExecutorDriver {
         }
 
         return false;
+    }
+
+    fn exit(self) {
+        // Placeholder for cleaning resources...
     }
 }

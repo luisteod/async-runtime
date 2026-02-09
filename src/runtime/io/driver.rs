@@ -37,7 +37,7 @@ impl IoDriver {
         (driver, handle)
     }
 
-    pub fn park(&mut self, handle: &IoHandle, timeout: Duration) {
+    pub fn park_timeout(&mut self, handle: &IoHandle, timeout: Duration) {
         let mut events = Events::with_capacity(MAX_EVENTS_CAPACITY);
         self.poll
             .poll(&mut events, Some(timeout))
