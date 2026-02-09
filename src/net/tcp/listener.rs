@@ -40,6 +40,8 @@ impl TcpListener {
         }))
     }
 
+    /// Not finished yet. Currently returning the no async version of TcpStream from mio.
+    /// In the future this method must return a custom awaitable TcpStream.
     pub async fn accept(&self) -> io::Result<(mio::net::TcpStream, SocketAddr)> {
         let (mio, addr) = self
             .io
@@ -47,13 +49,6 @@ impl TcpListener {
             .async_io(Interest::READABLE, || self.io.accept())
             .await?;
 
-        // Before implementing the async version of TcpStream, first try do stablish the
-        // connection asynchronously returnion the mio TcpStream.
-        // After this test, the return of this method must be our custom TcpStream.
-
         Ok((mio, addr))
-
-        // let stream = TcpStream::new(mio)?;
-        // Ok((stream, addr))
     }
 }

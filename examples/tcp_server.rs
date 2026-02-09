@@ -1,9 +1,9 @@
+// Asynchronously serve TCP clients.
+
 use std::io;
 use std::net::SocketAddr;
 
 use async_runtime::net::tcp::TcpListener;
-
-/// Asynchrounous serve TCP clients.
 
 async fn async_accept(listener: &TcpListener) -> io::Result<SocketAddr> {
     let (_stream, addr) = listener.accept().await?;

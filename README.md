@@ -9,9 +9,9 @@ Usage:
 Example:
 
 ```rust
-// Asynchronous serve TCP clients.
-// Example available in ./examples/tcp_server.rs
-// Try running with `cargo run --example tcp_server` inside this repo
+// Example available in ./examples/tcp_server.rs.
+// Try running with `cargo run --example tcp_server` inside this repo.
+// Asynchronously serve TCP clients.
 
 use std::io;
 use std::net::SocketAddr;

@@ -2,4 +2,4 @@ mod listener;
 pub use listener::TcpListener;
 
 mod stream;
-pub use stream::TcpStream;
+// pub use stream::TcpStream;
