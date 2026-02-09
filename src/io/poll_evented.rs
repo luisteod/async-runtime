@@ -1,5 +1,5 @@
 use crate::runtime::{context, io::Registration};
-use mio::event::Source;
+use mio::{Interest, event::Source};
 use std::ops::Deref;
 
 pub struct PollEvented<E: Source> {
@@ -8,8 +8,10 @@ pub struct PollEvented<E: Source> {
 }
 
 impl<E: Source> PollEvented<E> {
-    pub fn new(mut source: E) -> Self {
-        let registration = Registration::register(&mut source, context::get_executor_handle());
+    pub fn new(mut source: E, interest: Interest) -> Self {
+        let registration =
+            Registration::register(&mut source, interest, context::get_executor_handle());
+
         PollEvented {
             io: source,
             registration: registration,

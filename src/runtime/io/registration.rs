@@ -10,9 +10,13 @@ pub struct Registration {
 }
 
 impl Registration {
-    pub fn register(source: &mut impl Source, exec_handle: Rc<ExecutorHandle>) -> Self {
-        // Get the IoDriver via global context and register
-        let io = exec_handle.io().add_source(source);
+    /// Get the IoDriver via global context and register
+    pub fn register(
+        source: &mut impl Source,
+        interest: Interest,
+        exec_handle: Rc<ExecutorHandle>,
+    ) -> Self {
+        let io = exec_handle.io().add_source(source, interest);
         Registration { io }
     }
 

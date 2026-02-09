@@ -9,7 +9,7 @@ pub struct TcpListener {
 
 impl TcpListener {
     fn new(listener: mio::net::TcpListener) -> Self {
-        let poll_evented = PollEvented::new(listener);
+        let poll_evented = PollEvented::new(listener, Interest::READABLE);
         TcpListener { io: poll_evented }
     }
 

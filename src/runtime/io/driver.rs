@@ -11,7 +11,6 @@ use std::time::Duration;
 /// calling `wake` for each interested contained in the HashMap.
 
 const MAX_EVENTS_CAPACITY: usize = 1024;
-const DEFAULT_IO_INTERESTS: Interest = Interest::READABLE.add(Interest::WRITABLE);
 
 pub struct IoDriver {
     poll: Poll,
@@ -61,7 +60,7 @@ impl IoDriver {
 }
 
 impl IoHandle {
-    pub fn add_source<E>(&self, source: &mut E) -> Arc<ScheduledIo>
+    pub fn add_source<E>(&self, source: &mut E, interest: Interest) -> Arc<ScheduledIo>
     where
         E: Source,
     {
@@ -72,7 +71,7 @@ impl IoHandle {
             .borrow_mut()
             .insert(token, scheduled_io.clone());
 
-        let _ = self.registry.register(source, token, DEFAULT_IO_INTERESTS);
+        let _ = self.registry.register(source, token, interest);
 
         scheduled_io
     }
