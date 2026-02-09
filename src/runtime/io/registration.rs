@@ -3,9 +3,10 @@ use mio::Interest;
 use mio::event::Source;
 use std::io;
 use std::rc::Rc;
+use std::sync::Arc;
 
 pub struct Registration {
-    io: Rc<ScheduledIo>,
+    io: Arc<ScheduledIo>,
 }
 
 impl Registration {
@@ -22,7 +23,7 @@ impl Registration {
     ) -> io::Result<R> {
         loop {
             // This now returns an owned Future that we can await
-            let _event = ScheduledIo::io_future(&self.io, interest).await;
+            let _event = self.io.io_future(interest).await;
 
             match f() {
                 Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {

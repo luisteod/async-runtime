@@ -2,7 +2,7 @@ use super::scheduled_io::ScheduledIo;
 use mio::{Events, Interest, Poll, Registry, Token, event::Source};
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::rc::Rc;
+use std::sync::Arc;
 use std::time::Duration;
 
 /// Driver that drives IO events.
@@ -19,7 +19,7 @@ pub struct IoDriver {
 
 pub struct IoHandle {
     registry: Registry,
-    scheduled_io_map: RefCell<HashMap<Token, Rc<ScheduledIo>>>,
+    scheduled_io_map: RefCell<HashMap<Token, Arc<ScheduledIo>>>,
 }
 
 impl IoDriver {
@@ -61,11 +61,11 @@ impl IoDriver {
 }
 
 impl IoHandle {
-    pub fn add_source<E>(&self, source: &mut E) -> Rc<ScheduledIo>
+    pub fn add_source<E>(&self, source: &mut E) -> Arc<ScheduledIo>
     where
         E: Source,
     {
-        let scheduled_io = Rc::new(ScheduledIo::default());
+        let scheduled_io = Arc::new(ScheduledIo::default());
         let token = scheduled_io.token();
 
         self.scheduled_io_map
