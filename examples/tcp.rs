@@ -2,9 +2,7 @@ use async_runtime::net::tcp::TcpListener;
 use futures::io;
 use std::net::SocketAddr;
 
-async fn async_tcp(addr: &str) -> io::Result<SocketAddr> {
-    let listener = TcpListener::bind(addr)?;
-
+async fn async_accept(listener: &TcpListener) -> io::Result<SocketAddr> {
     let (_stream, addr) = listener.accept().await?;
 
     let ip = addr.ip();
@@ -12,18 +10,25 @@ async fn async_tcp(addr: &str) -> io::Result<SocketAddr> {
 
     println!("Client IP: {ip}\nClient Port: {port}");
 
+    // DO SOME WORK HERE
+
     return Ok(addr);
 }
 
-async fn async_main() {
-    let bind_addr = "localhost:4354";
-    let _ = async_tcp(bind_addr).await;
+async fn serve(bind_addr: &str) {
+    // Binds address
+    let listener = TcpListener::bind(bind_addr).expect("Fail to bind address");
+
+    // Create a serving loop to accept tcp connection asynchronously
+    loop {
+        let _ = async_accept(&listener).await;
+    }
 }
 
 fn main() {
     let rt = async_runtime::build();
 
-    rt.spawn(async_main());
+    rt.spawn(serve("localhost:4354"));
 
     rt.start();
 }
