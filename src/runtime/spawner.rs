@@ -1,4 +1,3 @@
-use futures::future::FutureExt;
 use std::{
     future::Future,
     sync::mpsc::SyncSender,
@@ -6,9 +5,9 @@ use std::{
 };
 
 use crate::runtime::task::Task;
+use futures::future::FutureExt;
 
 /// `Spawner` spawns new futures onto the task channel.
-#[derive(Clone)]
 pub struct Spawner {
     pub task_sender: SyncSender<Arc<Task>>,
 }
