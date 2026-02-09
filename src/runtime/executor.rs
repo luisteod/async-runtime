@@ -86,14 +86,24 @@ impl ExecutorDriver {
         while let Ok(task) = self.ready_queue.try_recv() {
             // Take the future, and if it has not yet completed (is still Some),
             // poll it in an attempt to complete it.
-            let mut future_slot = task.future.lock().unwrap();
-            if let Some(mut future) = future_slot.take() {
+            let future_slot = {
+                let mut future_guard = task.future.lock().unwrap();
+                // The take method briefly helds the lock and leave none in future field,
+                // preventing deadlocks.
+                future_guard.take()
+            };
+
+            if let Some(mut future) = future_slot {
                 let waker = waker_ref(&task);
                 let context = &mut Context::from_waker(&waker);
 
                 match future.as_mut().poll(context) {
                     Poll::Pending => {
-                        *future_slot = Some(future);
+                        {
+                            // Re-acquire the lock
+                            let mut future_guard = task.future.lock().unwrap();
+                            *future_guard = Some(future);
+                        }
                         self.metadata.pending_tasks += 1;
                     }
                     Poll::Ready(_) => {
