@@ -1,6 +1,7 @@
-use async_runtime::net::tcp::TcpListener;
-use futures::io;
+use std::io;
 use std::net::SocketAddr;
+
+use async_runtime::net::tcp::TcpListener;
 
 async fn async_accept(listener: &TcpListener) -> io::Result<SocketAddr> {
     let (_stream, addr) = listener.accept().await?;
