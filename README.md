@@ -4,33 +4,53 @@ Usage:
 
 - Clone this repository
 - Insert it's local path in the dependencies of Cargo.toml file
-- Write an async code
+- Write async code
 
 Example:
 
 ```rust
-// Example available in ./examples/timer_future.rs
+// Example available in ./examples/tcp_server.rs
+// Try running with `cargo run --example tcp_server`
 
-// TimeFuture implementation ...
+use std::io;
+use std::net::SocketAddr;
+
+use async_runtime::net::tcp::TcpListener;
+
+/// Asynchronous serve TCP clients.
+
+async fn async_accept(listener: &TcpListener) -> io::Result<SocketAddr> {
+    let (_stream, addr) = listener.accept().await?;
+
+    let ip = addr.ip();
+    let port = addr.port();
+
+    println!("Client IP: {ip}\nClient Port: {port}");
+
+    // ** DO SOME WORK HERE **
+
+    return Ok(addr);
+}
+
+async fn serve(bind_addr: &str) {
+    // Binds address
+    let listener = TcpListener::bind(bind_addr).expect("Fail to bind address");
+
+    // Create a serving loop to accept tcp connections asynchronously
+    loop {
+        let _ = async_accept(&listener).await;
+    }
+}
 
 fn main() {
-    // Creates the runtime
+    // Builds the async runtime
     let rt = async_runtime::build();
 
-    // Spawn two async blocks
-    rt.spawn(async {
-        println!("howdy!");
-        TimerFuture::new(Duration::new(2, 0)).await;
-        println!("done!");
-    });
+    // Spawn the server entry-point
+    rt.spawn(serve("localhost:4354"));
 
-    rt.spawn(async {
-        println!("howdy! 2");
-        TimerFuture::new(Duration::new(2, 0)).await;
-        println!("done! 2");
-    });
-
-    // Since it's single-threaded, it's necessary an explicity call to the runtime entry point
+    // Start the runtime
     rt.start();
 }
+
 ```
